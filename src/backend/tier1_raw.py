@@ -41,7 +41,7 @@ def store_data(data_df, stage_process, ticker, interval):
 
 
 # ==========================================
-# MODULE 2: THE ORCHESTRATOR (The Engine Loop)
+# MODULE 2: THE TIER 1 ORCHESTRATOR 
 # ==========================================
 
 def update_raw_pipeline(ticker, interval="daily", default_start="2020-01-01"):
