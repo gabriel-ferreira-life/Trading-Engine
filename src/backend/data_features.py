@@ -23,6 +23,37 @@ def calculate_rsi(df, period=22):
     df['RSI'] = rsi
     return df
 
+def calculate_sma(df, period=20):
+    """Calculates the Simple Moving Average."""
+    df[f'SMA_{period}'] = df['Adj Close'].rolling(window=period).mean()
+    return df
+
+def calculate_ema(df, period=20):
+    """Calculates the Exponential Moving Average."""
+    # adjust=False calculates it as a continuous series, standard for trading
+    df[f'EMA_{period}'] = df['Adj Close'].ewm(span=period, adjust=False).mean()
+    return df
+
+def calculate_macd(df, fast=12, slow=26, signal=9):
+    """Calculates the MACD, Signal Line, and Histogram."""
+    ema_fast = df['Adj Close'].ewm(span=fast, adjust=False).mean()
+    ema_slow = df['Adj Close'].ewm(span=slow, adjust=False).mean()
+    
+    df['MACD'] = ema_fast - ema_slow
+    df['MACD_Signal'] = df['MACD'].ewm(span=signal, adjust=False).mean()
+    df['MACD_Hist'] = df['MACD'] - df['MACD_Signal']
+    return df
+
+
+def apply_indicators(df):
+    """A master wrapper to apply all active indicators."""
+    df = calculate_rsi(df, period=22)
+    df = calculate_sma(df, period=20)
+    df = calculate_sma(df, period=50)
+    df = calculate_ema(df, period=20)
+    df = calculate_macd(df)
+    return df
+
 # ==========================================
 # MODULE 2: THE TIER 2 ORCHESTRATOR
 # ==========================================
@@ -72,11 +103,20 @@ def update_features_pipeline(ticker, interval="daily", lookback_days=22):
         is_incremental = False
 
     # Compute indicators
-    processing_df = calculate_rsi(processing_df, period=lookback_days) # RSI
-    # more coming soon: SMA, EMA, MACD, Bollinger Bands, etc.
+    processing_df = apply_indicators(processing_df)
 
     # Clean up and Upsert
     if is_incremental:
+        # If the new columns don't match the old columns exactly...
+        if set(processing_df.columns) != set(features_df.columns):
+            print(f"[{ticker}] Schema change detected! Backfilling historical data...")
+            
+            # Re-run the math on the ENTIRE raw dataset to fill in the new columns
+            processing_df = apply_indicators(raw_df.copy())
+            
+            # Switch off incremental mode so it overwrites the master file
+            is_incremental = False
+
         # Keep ONLY the genuinely new rows (drop the priming rows)
         new_features = processing_df[processing_df['Date'] > last_feature_date]
         combined_df = pd.concat([features_df, new_features])
