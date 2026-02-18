@@ -1,6 +1,7 @@
+```
 trading_engine/
 │
-├── data/                      # Your Medallion Data Lake
+├── data/                      # Medallion Data Lake
 │   ├── raw/                   # (Bronze)
 │   ├── features/              # (Silver)
 │   └── insights/              # (Gold)
@@ -14,3 +15,4 @@ trading_engine/
         ├── tier2_features.py  # RSI math and feature upserts
         ├── tier3_backtest.py  # Trading logic and P&L math
         └── engine_main.py     # Master orchestrator
+```
