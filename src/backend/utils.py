@@ -24,6 +24,18 @@ def calculate_lookback_date(ticker, target_date_str, lookback_days=22):
         
     return start_date_init, asset_class
 
+def lake_read_parquet(data_path, start_date=None, end_date=None):
+    insights_df = pd.read_parquet(data_path, engine='pyarrow')
+    insights_df['Date'] = pd.to_datetime(insights_df['Date'])
+    insights_df.set_index('Date', inplace=True)
+
+    if not start_date and not end_date:
+        return insights_df
+    elif not end_date:
+        return insights_df[insights_df.index >= start_date]
+    else:
+        return insights_df[(insights_df.index >= start_date) & (insights_df.index <= end_date)]
+
 def plot_equity_curve(df, ticker):
     """Visualizes the backtest using the DatetimeIndex."""
     plt.figure(figsize=(12, 6))

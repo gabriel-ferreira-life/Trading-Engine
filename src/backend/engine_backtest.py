@@ -94,8 +94,9 @@ def run_backtest(ticker, interval="daily"):
     # Generate the Trade Log
     trade_log_df = extract_trade_log(df)
     
-    # Save the file (index=True ensures your DatetimeIndex is preserved)
-    df.to_parquet(insights_path, index=True)
+    # Save the file
+    df = df.reset_index()
+    df.to_parquet(insights_path, index=False, engine='pyarrow')
     
     total_asset_return = df['Asset_Equity'].iloc[-1] - 1
     total_strategy_return = df['Strategy_Equity'].iloc[-1] - 1

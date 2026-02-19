@@ -61,7 +61,7 @@ def interactive_demo():
             if ticker == 'ALL':
                 print("Warning: Bulk deletion not yet configured. Please enter a specific ticker.")
             elif ticker:
-                erase_data(ticker, stage="both")
+                erase_data(ticker, stage="all")
                 print(f"Cache cleared for {ticker}. Next run will be a full historical fetch.")
                 
         elif choice == '3' or choice.lower() in ['q', 'quit', 'exit']:
