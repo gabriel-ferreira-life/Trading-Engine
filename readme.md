@@ -6,9 +6,9 @@ An automated, full-stack quantitative trading backtester built on a Medallion Da
 trading_engine/
 │
 ├── data/                      # Medallion Data Lake (Parquet)
-│   ├── raw/                   # 🥉 BRONZE: Untouched yfinance history
-│   ├── features/              # 🥈 SILVER: Enriched with RSI, MAs, MACD
-│   └── insights/              # 🥇 GOLD: Backtest results and trade logs
+│   ├── raw/                   # BRONZE: Original yfinance history
+│   ├── features/              # SILVER: Featured with RSI, MAs, MACD, and etc.
+│   └── insights/              # GOLD: Backtest results and trade logs
 │
 └── src/
     ├── frontend/              # (Planned) UI Dashboard
