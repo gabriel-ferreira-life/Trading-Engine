@@ -8,7 +8,7 @@ from engine_backtest import run_backtest
 from data_eraser import erase_data 
 from utils import plot_equity_curve, plot_signals, plot_montage
 
-def run_trading_engine(ticker, interval="daily", lookback_days=60):
+def run_trading_engine(ticker, strategy_name="baseline", interval="daily", start_date=None, end_date=None):
     """Executes the Medallion pipeline for a single asset."""
     print(f"\n" + "="*50)
     print(f"INITIATING ENGINE FOR: {ticker.upper()}")
@@ -19,10 +19,10 @@ def run_trading_engine(ticker, interval="daily", lookback_days=60):
         update_raw_pipeline(ticker, interval=interval)
         
         print("\n--- STEP 2: FEATURES ---")
-        update_features_pipeline(ticker, interval=interval, lookback_days=lookback_days) 
+        update_features_pipeline(ticker, interval=interval) 
         
         print("\n--- STEP 3: BACKTEST (BASELINE) ---")
-        result_df = run_backtest(ticker, interval=interval)
+        result_df = run_backtest(ticker, strategy_name=strategy_name, interval=interval, start_date=start_date, end_date=end_date)
         
         if result_df is not None and not result_df.empty:
             # plot_equity_curve(result_df, ticker)
@@ -51,17 +51,22 @@ def interactive_demo():
         
         if choice == '1':
             ticker = input("Enter a ticker symbol (e.g., NVDA, BTC, SPY): ").strip().upper()
+            strategy = input("Enter strategy name (default 'baseline'): ").strip().lower() or "baseline"
+            print("\n[Optional] Define a specific time window for the backtest.")
+            start_date = input("  Start Date (YYYY-MM-DD) [Default: 2020-01-01]: ").strip() or None
+            end_date = input("  End Date   (YYYY-MM-DD) [Default: Today]:      ").strip() or None
             if ticker:
-                run_trading_engine(ticker)
+                run_trading_engine(ticker, strategy_name=strategy, start_date=start_date, end_date=end_date)
             else:
                 print("Ticker cannot be blank.")
                 
         elif choice == '2':
-            ticker = input("Enter the ticker to erase (or type 'ALL' to reset everything): ").strip().upper()
-            if ticker == 'ALL':
-                print("Warning: Bulk deletion not yet configured. Please enter a specific ticker.")
-            elif ticker:
-                erase_data(ticker, stage="all")
+            # Integrated with your upgraded eraser utility
+            print("\n--- DATA ERASER UTILITY ---")
+            ticker = input("Enter the ticker to erase: ").strip().upper()
+            stage = input("Enter stage ('raw', 'features', 'insights', 'both', 'all') [default: 'all']: ").strip().lower() or "all"
+            if ticker:
+                erase_data(ticker, stage=stage)
                 print(f"Cache cleared for {ticker}. Next run will be a full historical fetch.")
                 
         elif choice == '3' or choice.lower() in ['q', 'quit', 'exit']:

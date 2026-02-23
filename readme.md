@@ -19,7 +19,7 @@ trading_engine/
         ├── data_eraser.py           # Erases parquet caches
         ├── strategy_baseline.py     # Alpha: RSI 35/65 Mean Reversion
         ├── engine_backtest.py       # Vectorized portfolio simulation & P&L
-        └── engine_main.py           # Master Orchestrator & CLI
+        └── cli_demo.py           # Master Orchestrator & CLI
 ```
 
 ## Core Features
