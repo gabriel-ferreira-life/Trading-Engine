@@ -32,9 +32,12 @@ def lake_read_parquet(data_path, start_date=None, end_date=None):
     if not start_date and not end_date:
         return insights_df
     elif not end_date:
-        return insights_df[insights_df.index >= start_date]
+        start_dt = pd.to_datetime(start_date)
+        return insights_df[insights_df.index >= start_dt]
     else:
-        return insights_df[(insights_df.index >= start_date) & (insights_df.index <= end_date)]
+        start_dt = pd.to_datetime(start_date)
+        end_dt = pd.to_datetime(end_date)
+        return insights_df[(insights_df.index >= start_dt) & (insights_df.index <= end_dt)].copy()
 
 def plot_equity_curve(df, ticker):
     """Visualizes the backtest using the DatetimeIndex."""
@@ -89,8 +92,6 @@ def plot_signals(df, ticker):
     plt.tight_layout()
     plt.show()
 
-import matplotlib.pyplot as plt
-
 def plot_montage(df, ticker):
     """
     Creates a side-by-side montage dashboard.
@@ -140,4 +141,5 @@ def plot_montage(df, ticker):
 
     # Clean up the layout
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
+    plt.pause(0.1)
