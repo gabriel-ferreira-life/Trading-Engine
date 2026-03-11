@@ -2,11 +2,9 @@ import sys
 import pandas as pd
 
 # Import your modules
-from data_raw import update_raw_pipeline
-from data_features import update_features_pipeline
-from engine_backtest import run_backtest
-from data_eraser import erase_data 
-from utils import plot_equity_curve, plot_signals, plot_montage
+from backend.pipeline.orchestrator import run_full_pipeline
+from backend.data_processor.data_eraser import erase_data 
+from backend.utils import plot_montage
 
 def run_trading_engine(ticker, strategy_name="baseline", interval="daily", start_date=None, end_date=None):
     """Executes the Medallion pipeline for a single asset."""
@@ -15,18 +13,10 @@ def run_trading_engine(ticker, strategy_name="baseline", interval="daily", start
     print("="*50)
     
     try:
-        print("\n--- STEP 1: RAW DATA ---")
-        update_raw_pipeline(ticker, interval=interval)
-        
-        print("\n--- STEP 2: FEATURES ---")
-        update_features_pipeline(ticker, interval=interval) 
-        
-        print("\n--- STEP 3: BACKTEST (BASELINE) ---")
-        result_df = run_backtest(ticker, strategy_name=strategy_name, interval=interval, start_date=start_date, end_date=end_date)
+        # Run the full pipeline and get backtest results
+        result_df = run_full_pipeline(ticker, strategy_name=strategy_name, interval=interval, start_date=start_date, end_date=end_date)
         
         if result_df is not None and not result_df.empty:
-            # plot_equity_curve(result_df, ticker)
-            # plot_signals(result_df, ticker)
             plot_montage(result_df, ticker)
             print(f"\nPIPELINE COMPLETE FOR {ticker.upper()}\n")
         else:

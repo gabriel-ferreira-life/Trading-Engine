@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def generate_signals(df, rsi_lower=35, rsi_upper=65):
+def generate_signals_baseline(df, rsi_lower=35, rsi_upper=65):
     """
     Baseline Strategy: RSI 35/65 Mean Reversion
     - Goes Long when RSI drops below 35.

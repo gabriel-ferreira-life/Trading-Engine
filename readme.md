@@ -4,22 +4,39 @@ An automated, full-stack quantitative trading backtester built on a Medallion Da
 ## Directory Structure
 ```
 trading_engine/
+├── .venv
+├── .gitignore
+├── requirements.txt
+├── readme.md
 │
-├── data/                      # Medallion Data Lake (Parquet)
-│   ├── raw/                   # BRONZE: Original yfinance history
-│   ├── features/              # SILVER: Featured with RSI, MAs, MACD, and etc.
-│   └── insights/              # GOLD: Backtest results and trade logs
+├── data/                 # Medallion Data Lake (Parquet)
+│   ├── bronze/            # BRONZE: Original yfinance history
+│   ├── silver/            # SILVER: Featured with RSI, MAs, MACD, and etc.
+│   └── gold/              # GOLD: Backtest results and trade logs
 │
 └── src/
-    ├── frontend/              # (Planned) UI Dashboard
-    └── backend/               # Core Engine
+    ├── frontend/              # UI Dashboard
+    │   ├── charts.py           # Frontend graphs
+    │   └── app.py              # streamlit app
+    │
+    └── backend/                   # Core Engine
+        ├── .env                     # API Keys
+        ├── config.py                # Config
         ├── utils.py                 # Holiday/Crypto calendar routing
-        ├── data_raw.py              # Fetches & upserts raw historical data
-        ├── data_features.py         # Calculates indicators with lookback safety
-        ├── data_eraser.py           # Erases parquet caches
-        ├── strategy_baseline.py     # Alpha: RSI 35/65 Mean Reversion
+        ├── api.py                   # FastAPI 
         ├── engine_backtest.py       # Vectorized portfolio simulation & P&L
-        └── cli_demo.py           # Master Orchestrator & CLI
+        ├── cli_demo.py              # Master Orchestrator & CLI
+        └── backend/ 
+            └── data_processor/ 
+            │   ├── stock_prices_fetcher.py         # Fetches & upserts raw historical data
+            │   ├── stock_news_fetcher.py           # Fetches & upserts historical news data
+            │   ├── indicator_calculator.py         # Calculates indicators with lookback safety  
+            │   └── data_eraser.py                  # Erases parquet caches
+            │
+            └── trading_strategy/ 
+                ├── baseline.py                     # Alpha: RSI 35/65 Mean Reversion
+                ├── tier1.py  
+                └── tier2.py  
 ```
 
 ## Core Features

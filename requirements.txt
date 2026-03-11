@@ -4,3 +4,13 @@ matplotlib
 yfinance
 fastparquet
 pyarrow
+fastapi
+pydantic
+uvicorn
+streamlit
+plotly
+langchain-core
+langchain_openai
+dotenv
+alpaca
+alpaca-py
