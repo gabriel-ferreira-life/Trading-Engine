@@ -12,5 +12,4 @@ plotly
 langchain-core
 langchain_openai
 dotenv
-alpaca
 alpaca-py

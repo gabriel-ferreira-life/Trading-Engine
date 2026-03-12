@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+pd.set_option('future.no_silent_downcasting', True)
 from backend.utils import calculate_lookback_date
 from backend.data_processor.indicators import apply_indicators
 from backend.data_processor.sentiment import compute_sentiment_feature
