@@ -1,5 +1,5 @@
-from bronze_pipeline import update_bronze_pipeline
-from silver_pipeline import update_silver_pipeline
+from .bronze_pipeline import update_bronze_pipeline
+from .silver_pipeline import update_silver_pipeline
 from backend.engine_backtest import run_backtest
 
 # ==========================================

@@ -1,42 +1,68 @@
-import os 
+import os
 import pandas as pd
-from datetime import timedelta
-from data_processor.prices_fetcher import fetch_data, store_data
-from data_processor.news_fetcher import fetch_stock_news
+from backend.data_processor.fetcher_utils import get_fetch_range
+from backend.data_processor.prices_fetcher import fetch_data, store_prices
+from backend.data_processor.news_fetcher import fetch_news, store_news
 
-def update_bronze_pipeline(ticker, interval="daily", default_start="2019-01-01"):
-    """
-    The main engine function that checks what we have, 
-    fetches what we need, and stores it safely.
-    """
-    stage_process = "bronze"
-    data_path = f"../../data/{stage_process}/{ticker}/{interval}/data.parquet"
-    
-    # Figure out what data we are missing
-    if os.path.exists(data_path):
-        existing_df = pd.read_parquet(data_path, engine='pyarrow')
-        last_recorded_date = pd.to_datetime(existing_df['Date'].iloc[-1])
-        
-        # We need data starting the day AFTER our last record
-        fetch_start = (last_recorded_date + timedelta(days=1)).strftime("%Y-%m-%d")
-        print(f"[{ticker}] Local data ends {last_recorded_date.strftime('%Y-%m-%d')}. Fetching from {fetch_start}...")
-    else:
-        fetch_start = default_start
-        print(f"[{ticker}] No local data. Fetching full history from {fetch_start}...")
 
-    # Prevent fetching if the "fetch_start" is tomorrow (we are already up to date!)
-    if pd.to_datetime(fetch_start) > pd.Timestamp.today():
-        print(f"[{ticker}] Data is already fully up to date.")
+DEFAULT_START = "2019-01-01"
+
+
+def update_bronze_pipeline(ticker: str, interval: str = "daily", default_start: str = DEFAULT_START) -> None:
+    """
+    Brings all bronze-tier data sources up to date for a given ticker.
+    Each source independently checks what it has and fetches only the delta.
+
+    Adding a new data source (e.g. fundamentals, options flow):
+        1. Write fetch_<source>() and store_<source>() in a new fetcher file
+        2. Define its data_path and date_col below
+        3. Call get_fetch_range() → fetch → store — same pattern as prices/news
+    """
+    print(f"\n[{ticker}] --- BRONZE PIPELINE ---")
+
+    _update_prices(ticker, interval, default_start)
+    _update_news(ticker, interval, default_start)
+
+
+# ==========================================
+# PRIVATE: Per-source update functions
+# ==========================================
+
+def _update_prices(ticker: str, interval: str, default_start: str) -> None:
+    """Fetches and stores the OHLCV delta for a ticker."""
+    data_path = f"../../../data/bronze/{ticker}/{interval}/data.parquet"
+    fetch_start, is_current = get_fetch_range(data_path, date_col='Date', default_start=default_start)
+
+    if is_current:
+        print(f"[{ticker}] Prices are already up to date.")
         return
 
-    # Fetch the missing data
+    print(f"[{ticker}] Fetching prices from {fetch_start}...")
     new_data = fetch_data(ticker, start_date=fetch_start)
-    
-    # Store the data
-    if not new_data.empty and len(new_data) > 0:
-        store_data(new_data, stage_process, ticker, interval)
-    else:
-        print(f"[{ticker}] No new trading days to download from Yahoo Finance.")
 
-    # Fetch news for the same date range as our price data
-    fetch_stock_news(ticker, fetch_start, interval="daily")
+    if new_data.empty:
+        print(f"[{ticker}] No new price data available.")
+        return
+
+    store_prices(new_data, ticker, interval)
+
+
+def _update_news(ticker: str, interval: str, default_start: str) -> None:
+    """Fetches and stores the news delta for a ticker."""
+    news_path = f"../../../data/bronze/{ticker}/{interval}/news.parquet"
+
+    # News deduplicates on 'created_at' (timestamp-level), not 'Date' (day-level),
+    # because multiple articles can land on the same calendar date.
+    fetch_start, is_current = get_fetch_range(news_path, date_col='created_at', default_start=default_start)
+
+    if (is_current) | (pd.to_datetime(fetch_start).date() == pd.Timestamp.today().date()):
+        print(f"[{ticker}] News is already up to date.")
+        return
+
+    new_news = fetch_news(ticker, start_date=fetch_start)
+
+    if new_news.empty:
+        print(f"[{ticker}] No new news available.")
+        return
+
+    store_news(new_news, ticker, interval)

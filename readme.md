@@ -51,3 +51,6 @@ trading_engine/
 * **Interactive CLI Dashboard:** Includes a live terminal menu to run backtests, view metrics, or wipe the data cache on the fly.
 
 * **Visual Montages:** Automatically generates a side-by-side Matplotlib dashboard showing exact Buy/Sell execution arrows alongside the cumulative equity curve.
+
+pip install -r requirements.txt
+pip install -e .

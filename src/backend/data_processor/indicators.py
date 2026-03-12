@@ -1,11 +1,4 @@
-import os
 import pandas as pd
-import backend.config as config
-from utils import calculate_lookback_date
-
-# ==========================================
-# INDICATOR CALCULATIONS
-# ==========================================
 
 def calculate_rsi(df, period=22):
     """Calculates the Relative Strength Index."""
