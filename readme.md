@@ -2,6 +2,8 @@
 
 A systematic backtesting framework built on a medallion data architecture. Fetches historical price and news data, computes technical indicators and LLM-based sentiment, runs vectorized strategy backtests, and serves results through a FastAPI backend and Streamlit dashboard.
 
+![Alt text for screen readers](src/frontend/current_frontend.png)
+
 ## Architecture
 
 ```
