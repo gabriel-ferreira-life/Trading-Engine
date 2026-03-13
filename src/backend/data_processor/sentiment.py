@@ -1,9 +1,11 @@
+import warnings
+warnings.filterwarnings("ignore", message="Core Pydantic V1 functionality")
+
 import os
 import pandas as pd
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from backend import config
-
 
 SENTIMENT_PROMPT = PromptTemplate.from_template("""
 Analyze these headlines for {ticker}.

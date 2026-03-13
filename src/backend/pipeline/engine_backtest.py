@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-from backend.trading_strategy.registry import get_strategy
+from backend.trading_strategy.registry import get_strategy, STRATEGIES
 from backend.utils import lake_read_parquet
 
 def extract_trade_log(df):
@@ -23,7 +23,6 @@ def extract_trade_log(df):
         exits = exits.append(pd.Index([df.index[-1]]))
         
     trade_ledger = []
-    
     for entry_date, exit_date in zip(entries, exits):
         
         # Calculate compounded return for this specific holding period
@@ -134,18 +133,16 @@ def run_backtest(ticker, strategy_name="baseline", interval="daily", start_date=
     """Executes the backtest and outputs performance metrics."""
 
     # Setup the 3 distinct output file paths
-    gold_dir = f"../../data/gold/{ticker}/{interval}"
+    gold_dir = f"../../data/gold/{ticker}/{interval}/{strategy_name}"
     os.makedirs(gold_dir, exist_ok=True)
 
     dataset_path = f"{gold_dir}/{strategy_name}_dataset.parquet"
     trades_path = f"{gold_dir}/{strategy_name}_trades.parquet"
     metrics_path = f"{gold_dir}/{strategy_name}_metrics.json"
-    
-    # Data source path
     silver_path = f"../../data/silver/{ticker}/{interval}/data.parquet"
 
     if not os.path.exists(silver_path):
-        print(f"[{ticker}] No silver data found. Run Tier 2 first.")
+        print(f"[{ticker}] No silver data found. Run Silver Pipeline first.")
         return
     
     if not start_date:
@@ -177,3 +174,35 @@ def run_backtest(ticker, strategy_name="baseline", interval="daily", start_date=
         print("No data found to process.")
     
     return df
+
+def run_all_strategies(ticker, interval="daily", start_date="2020-01-01", end_date=None):
+    """
+    Runs every registered strategy against the same silver dataset.
+ 
+    Returns:
+        results   : dict[strategy_name -> DataFrame]  (signal + equity columns)
+        summaries : dict[strategy_name -> metrics_dict]
+    """
+    results   = {}
+    summaries = {}
+ 
+    for strategy_name in STRATEGIES:
+        print(f"\n[{ticker}] Running strategy: {strategy_name}")
+        df = run_backtest(
+            ticker        = ticker,
+            strategy_name = strategy_name,
+            interval      = interval,
+            start_date    = start_date,
+            end_date      = end_date,
+        )
+ 
+        if df is not None and not df.empty:
+            results[strategy_name] = df
+ 
+            # Read the metrics JSON that run_backtest just wrote to disk
+            metrics_path = f"../../data/gold/{ticker}/{interval}/{strategy_name}/{strategy_name}_metrics.json"
+            if os.path.exists(metrics_path):
+                with open(metrics_path) as f:
+                    summaries[strategy_name] = json.load(f)
+ 
+    return results, summaries
